@@ -624,10 +624,11 @@ class CommonTest extends TestBase implements ITestBaseIsolated {
         AmqpClient client = getAmqpClientFactory().createQueueClient(addressSpace);
         client.getConnectOptions().setCredentials(user);
         boolean full = false;
-        byte[] bytes = new byte[4096];
+        byte[] bytes = new byte[1024 * 1000];
         Random random = new Random();
         int messagesSent = 0;
         TimeoutBudget timeout = new TimeoutBudget(180, TimeUnit.SECONDS);
+
         do {
             Message message = Message.Factory.create();
             random.nextBytes(bytes);
@@ -640,6 +641,7 @@ class CommonTest extends TestBase implements ITestBaseIsolated {
                 assertThat(deliveries, hasSize(1));
                 var state = deliveries.get(0).getRemoteState();
                 if (state.getType() == DeliveryStateType.Modified || state.getType() == DeliveryStateType.Rejected) {
+                    full = true;
                     log.info("broker is full after sending {} messages", messagesSent);
                 }
                 messagesSent++;
